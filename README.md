@@ -14,7 +14,33 @@ This task will focus on calculating a 2D to 2D diffeomorphism between stack of s
   + calculation of a diffeomorphism between each pair: pre-process original slice i and resliced template slices
   + for now, there is no relation between transformation of diffeomorphism found for slice pair i and slice pair i+1
 
-Example of pair of slice:
-![target slice](https://www.github.com/ChrCoello/warp/2D/elastic/target.png?raw=true "Target Slice")
+### Example of pair of slices after anchoring
+Target slice
+![target slice](https://github.com/ChrCoello/warp/blob/master/2D/elastic/target.png?raw=true "Target Slice")
+Moving slice![moving slice](https://github.com/ChrCoello/warp/blob/master/2D/elastic/moving.png?raw=true "Moving Slice")
+Moving slice![moving slice](https://github.com/ChrCoello/warp/blob/master/2D/animated.gif?raw=true "Green: moving, gray: target")
+
+### Intensity-based registration
++ The code used for this task is available here :
+```shell      
+#!/bin/bash
+#
+ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=4  #controls multi-threading
+export ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS
+dim=2
+antsRegistration -v -d $dim -r [ target.nii.gz , moving.nii.gz ,1] \
+-m mattes[ target.nii.gz , moving.nii.gz, 1 , 32, regular,0.1 ] \
+-t affine[ 0.1 ] \
+-c [500x500x50,1.e-8,20] \
+-s 4x2x1vox \
+-f 3x2x1 -l 1 \
+-m cc[ target.nii.gz , moving.nii.gz, 1 , 4 ] \
+-t syn[ .15, 3, 0.5 ] \
+-c [ 50x50x50,0,5 ] \
+-s 1x0.5x0vox \
+-f 4x2x1 -l 1 -u 1 -z 1 \
+-o [moving,moving_diff.nii.gz,moving_inv.nii.gz]
+```
+
 
 ## Warping tasks: 3D
