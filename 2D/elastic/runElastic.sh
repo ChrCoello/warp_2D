@@ -10,7 +10,7 @@ antsRegistration -v -d $dim -r [ target.nii.gz , moving.nii.gz ,1] \
       -s 4x2x1vox \
       -f 3x2x1 -l 1 \
       -m cc[ target.nii.gz , moving.nii.gz, 1 , 4 ] \
-      -t syn[ .15, 3, 0.5 ] \
+      -t BSplineSyN[ .15, 8, 0.5 ] \
       -c [ 50x50x50,0,5 ] \
       -s 1x0.5x0vox \
       -f 4x2x1 -l 1 -u 1 -z 1 \
