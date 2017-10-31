@@ -8,9 +8,10 @@ This task will focus on calculating a 2D to 2D diffeomorphism between stack of s
 
 ## Example of pair of slices after anchoring
 Target slice: this is the histology slice that has been pre-processed (RGB to grayscale + invert)
-![target slice](https://github.com/ChrCoello/warp/blob/master/2D/elastic/target.png?raw=true "Target Slice")
+<img src="https://github.com/ChrCoello/warp/blob/master/2D/elastic/target.png?raw=true" title="Target Slice" width="512">
 
-Moving slice![moving slice](https://github.com/ChrCoello/warp/blob/master/2D/elastic/moving.png?raw=true "Moving Slice")
+Moving slice
+<img src="https://github.com/ChrCoello/warp/blob/master/2D/elastic/moving.png?raw=true" title="Moving Slice" width="512">
 
 The image similarity between target and moving image is **0.976361**, and is calculated as follows:
 ```shell
@@ -20,7 +21,8 @@ target.nii.gz : moving.nii.gz => CC 0.976361
 ```
 The image similarity metric is measured on all pixels, so it is normal to find such a high value (max CC  is 1). An improvement is to measure the metric on the masked image but this is not available with *MeasureImageSimilarity*.
 
-Blend moving (green) and target(gray)![moving slice](https://github.com/ChrCoello/warp/blob/master/2D/animated.gif?raw=true "Green: moving, gray: target")
+Blend moving (green) and target(gray)
+<img src="https://github.com/ChrCoello/warp/blob/master/2D/animated.gif?raw=true" title="Green: moving, gray: target" width="512">
 
 ## Intensity-based registration
 + The code used for this task is available [here](https://github.com/ChrCoello/warp/blob/master/2D/elastic/runElastic.sh) :
@@ -47,7 +49,7 @@ To summarise, an affine and diffeomorphism transformation are calculated for the
 The resulting warped image is closer to the target in term of image similarity (**CC 0.987**). We can observe better matching on the edges and in the white matter tracts. Nevertheless, we can also see that there is no good registration on the *olive structure*.
 
 Moving slice
-![moving slice](https://github.com/ChrCoello/warp/blob/master/2D/animated_warp.gif?raw=true "Green: moving, gray: target")
+<img src="https://github.com/ChrCoello/warp/blob/master/2D/animated_warp.gif?raw=true" title="Green: moving, gray: target" width="512">
 
 ## Adding landmark-based registration
 Landmarks should be defined using ITKSnap. Each landmark has a different label as seen in the images below. Of, course, both moving and target images should have corrseponding landmarks.
@@ -77,7 +79,19 @@ antsRegistration -v -d $dim -r [ target.nii.gz , moving.nii.gz ,1] \
       -o [moving_surf,moving_surf_dir.nii.gz,moving_surf_inv.nii.gz]
 ```
 
-Below are three examples :
- * warp with only image intensity information
+Below are presented the result one gets using the above landmarks in the following configurtion : :
+
+ * warp with only image intensity information: very good fit on the edges but not the internal structure (*olive*)
+ <img src="https://github.com/ChrCoello/warp/blob/master/2D/landmarks/land_int_blend_001.png?raw=true" alt="target slice" width="256">
+ * warp with 80% intensity and 20% landmarks
+  <img src="https://github.com/ChrCoello/warp/blob/master/2D/landmarks/land_int_blend_002.png?raw=true" alt="target slice" width="256">
+ * warp with 50% intensity and 50% landmarks
+  <img src="https://github.com/ChrCoello/warp/blob/master/2D/landmarks/land_int_blend_003.png?raw=true" alt="target slice" width="256">
+ * warp with 20% intensity and 80% landmarks
+  <img src="https://github.com/ChrCoello/warp/blob/master/2D/landmarks/land_int_blend_004.png?raw=true" alt="target slice" width="256">
  * warp with only landmark information
- * warp with a combination of both
+  <img src="https://github.com/ChrCoello/warp/blob/master/2D/landmarks/land_int_blend_005.png?raw=true" alt="target slice" width="256">
+
+Below is an animated gif showing the difference in fit when changing the weight from purely image intensity to purely landmark based.
+
+<img src="https://github.com/ChrCoello/warp/blob/master/2D/landmarks/landmark_2_intensity.gif?raw=true" alt="target slice" width="256">
