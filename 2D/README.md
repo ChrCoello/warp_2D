@@ -51,10 +51,11 @@ Moving slice
 
 ## Adding landmark-based registration
 Landmarks should be defined using ITKSnap. Each landmark has a different label as seen in the images below. Of, course, both moving and target images should have corrseponding landmarks.
+
 <img src="https://github.com/ChrCoello/warp/blob/master/2D/landmarks/surfaceMoving.png?raw=true" alt="moving slice" width="256">
 <img src="https://github.com/ChrCoello/warp/blob/master/2D/landmarks/surfaceTarget.png?raw=true" alt="target slice" width="256">
 
- The metric used when doing landmark-based registration is point set estimation (PSE). This metric can be used on its own (landmark only) or in combination with pixel intensity registration.
+The metric used when doing landmark-based registration is point set estimation (PSE). This metric can be used on its own (landmark only) or in combination with pixel intensity registration.
 
 ```shell
 #!/bin/bash
