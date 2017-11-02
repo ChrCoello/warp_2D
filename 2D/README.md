@@ -79,8 +79,9 @@ antsRegistration -v -d $dim -r [ target.nii.gz , moving.nii.gz ,1] \
       -o [moving_surf,moving_surf_dir.nii.gz,moving_surf_inv.nii.gz]
 ```
 
-Below are presented the result one gets using the above landmarks in the following configurtion : :
-
+Below are presented the result one gets using the above landmarks in the following configurtion :
+ * original image
+  <img src="https://github.com/ChrCoello/warp/blob/master/2D/landmarks/land_int_blend_000.png?raw=true" alt="target slice" width="256">
  * warp with only image intensity information: very good fit on the edges but not the internal structure (*olive*)
  <img src="https://github.com/ChrCoello/warp/blob/master/2D/landmarks/land_int_blend_001.png?raw=true" alt="target slice" width="256">
  * warp with 80% intensity and 20% landmarks
@@ -94,4 +95,4 @@ Below are presented the result one gets using the above landmarks in the followi
 
 Below is an animated gif showing the difference in fit when changing the weight from purely image intensity to purely landmark based.
 
-<img src="https://github.com/ChrCoello/warp/blob/master/2D/landmarks/landmark_2_intensity.gif?raw=true" alt="target slice" width="256">
+<img src="https://github.com/ChrCoello/warp/blob/master/2D/landmarks/intensity2landmarks.gif?raw=true" alt="target slice" width="256">
