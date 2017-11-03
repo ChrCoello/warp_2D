@@ -9,7 +9,10 @@
   + as for October 2017, warp functions in Python : [ANTsPy](https://github.com/ANTsX/ANTsPy)
 
 ## 2D to 2D
-
 [README](2D/README.md)
 
+Workflow November 2017
+![README](images/workflow_simplified.svg)
+
+Workflow May 2017
 ![README](images/workflow.svg)
