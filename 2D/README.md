@@ -96,3 +96,106 @@ Below are presented the result one gets using the above landmarks in the followi
 Below is an animated gif showing the difference in fit when changing the weight from purely image intensity to purely landmark based.
 
 <img src="https://github.com/ChrCoello/warp/blob/master/2D/landmarks/intensity2landmarks.gif?raw=true" alt="target slice" width="256">
+
+
+## Applying transformation to high res images
+One feature of the transformations calculated with ants is that they represent the deformation from a source space to the target space in the physical workd/space. It means that the calculated deformation is agnostic to the resolution of the image the transformation has been calculated on.
+
+Let's look process the high resolution image *MR25_s019.tif* and associated MR and atlas
+```bash
+./warp2D_single_section.sh MR25_s018_WP.tif MR25_s018_WP_MRI.png MR25_s018_WP_Segmentation.png 5000 20
+```
+
+
+This tiff image is defining a given physical space, this space being captured by the following tiff tags defined by their [libtiff name](https://www.awaresystems.be/imaging/tiff/tifftags/baseline.html) TIFFTAG_IMAGEWIDTH,TIFFTAG_IMAGELENGTH,TIFFTAG_XRESOLUTION, TIFFTAG_YRESOLUTION,TIFFTAG_RESOLUTIONUNIT.
+
+Metadata input *MR25_s019.tif*
+```bash
+echo -e "\nMetadata of" ${sec_fn} ":"
+identify -verbose ${sec} | grep -E '(Resolution|Units|Print size|Geometry)'
+Metadata of MR25_s018_WP:
+  Geometry: 22500x17500+0+0
+  Resolution: 72x72
+  Print size: 312.5x243.056
+  Units: PixelsPerInch
+    tiff:ResolutionUnit: 2
+    tiff:XResolution: 720000/10000
+    tiff:YResolution: 720000/10000
+```
+
+Defining the correct physical space
+```bash
+convert ${sec} -strip ${sec_meta}
+convert ${sec_meta} -units PixelsPerCentimeter ${sec_meta}
+convert ${sec_meta} -density ${tif_res}x${tif_res} ${sec_meta}
+echo -e "\nMetadata of" ${sec_meta} "after setting the physical space metadata:"
+identify -verbose ${sec_meta} | grep -E '(Resolution|Units|Print size|Geometry)'
+Metadata of MR25_s018_WP_meta.tif after setting the physical space metadata:
+  Geometry: 22500x17500+0+0
+  Resolution: 5000x5000
+  Print size: 4.5x3.5
+  Units: PixelsPerCentimeter
+```
+
+To downsample an image, the program resamples (Imagemagick [-resample](https://www.imagemagick.org/script/command-line-options.php#resample)) the image. In this example, a 20-fold resampling was chosen:
+```bash
+new_res=$((${tif_res} / ${tif_dwn}))
+sec_dwn=${sec_fn}_resize.${sec_ext}
+#
+sec_dwn_ext="${sec_dwn##*.}"
+sec_dwn_fn="${sec_dwn%.*}"
+#
+echo -e "\nDownsampling" ${tif_dwn} "times"
+convert ${sec_meta} -resample ${new_res}x${new_res} ${sec_dwn}
+echo -e "\nMetadata after downsampling"
+identify -verbose ${sec_dwn} | grep -E '(Resolution|Units|Print size|Geometry)'
+
+Downsampling 20 times
+
+Metadata after downsampling
+  Geometry: 1125x875+0+0
+  Resolution: 250x250
+  Print size: 4.5x3.5
+  Units: PixelsPerCentimeter
+```
+
+We can see that the phyisal space (Print size) has not change between the high res and low res image. Just the geometry ad resolution are modified.
+
+The physical space is transfered to the header of the Nifti file
+using [ImageMath](http://manpages.ubuntu.com/manpages/trusty/man1/ImageMath.1.html)
+
+```bash
+echo -e "\nConverting to Nifti"
+sec_dwn_nii=${sec_dwn_fn}.nii
+ImageMath 2 ${sec_dwn_nii} Byte ${sec_dwn}
+echo -e "\nSection nifti file" ${sec_dwn_nii} "info:"
+c3d ${sec_dwn_nii} -info-full | grep -E '(Bounding Box|Voxel Spacing|Image Dimensions)'
+
+Section nifti file MR25_s018_WP_resize.nii info:
+  Image Dimensions   : [1125, 875, 1]
+  Bounding Box       : {[0 0 0], [45 35 1]}
+  Voxel Spacing      : [0.04, 0.04, 1]
+
+```
+
+Only tiff files have been tested using ImageMath.
+
+Then the customised MRI cut and associated atlas delineations are resized to the same size as the downsampled version of the section and the transformation is calculated using the MRI as source and the section as target.
+```bash
+antsRegistration -v -d $dim \
+      	-m cc[${target},${moving},1,8] \
+      	-t affine[0.10,1.e-7,20] \
+      	-c [500] \
+      	-s 4vox \
+      	-f 4 \
+	      -m cc[${target},${moving},1,8] \
+      	-t BSplineSyN[0.10,20x20,0,3] \
+      	-c [50x50x50,1.e-7,5] \
+      	-s 4x2x1vox \
+	      -f 4x2x1 \
+      	-o ${output}
+```
+The important parameter here is 20x20: "the mesh size or, equivalently, the number of knot lines" [see more here](https://sourceforge.net/p/advants/discussion/840261/thread/91efe303/#370d). Here is the [paper](https://www.ncbi.nlm.nih.gov/pubmed/24409140) presenting the BSplineSyn. We can also think about this parameter as the parameter that allows to decrease the [regularisation](https://github.com/ANTsX/ANTs/issues/385).
+
+
+The transformation can then be applied to the high res images, after they have been transformed to Nifti. Applying the transform to the high res should be done by providing the high res section as target and the hig res MRI as source. We can of course apply the transformation to the high res delineations.
