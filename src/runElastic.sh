@@ -13,12 +13,14 @@ moving_lm=$5
 weigth_landmarks=$6
 
 dim=2
+MESH_BSPLINE_REDUCTION=20
 
-width=$(c3d MR25_s018_WP_resize.nii -info-full | grep -oP ' dim\[1\] = \s*\K\d+')
-height=$(c3d MR25_s018_WP_resize.nii -info-full | grep -oP ' dim\[2\] = \s*\K\d+')
-mesh_bspline_width=$((${width}/10))
-mesh_bspline_height=$((${height}/10))
-echo -e "\n Mesh BSpline:" ${mesh_bspline_width}"x"${mesh_bspline_height}
+### Getting the mesh
+width=$(c3d ${target} -info-full | grep -oP ' dim\[1\] = \s*\K\d+')
+height=$(c3d ${target} -info-full | grep -oP ' dim\[2\] = \s*\K\d+')
+mesh_bspline_width=$((${width}/${MESH_BSPLINE_REDUCTION}))
+mesh_bspline_height=$((${height}/${MESH_BSPLINE_REDUCTION}))
+echo -e "\n BSpline mesh points (wxh):" ${mesh_bspline_width}"x"${mesh_bspline_height}
 
 
 ### Register
@@ -31,11 +33,12 @@ then
         	-s 4vox \
         	-f 4 \
   	      -m cc[${target},${moving},1,8] \
-        	-t BSplineSyN[0.10,20x20,0,3] \
-        	-c [50x50x50,1.e-7,5] \
+        	-t BSplineSyN[0.10,${mesh_bspline_width}"x"${mesh_bspline_height},0,3] \
+        	-c [200x100x50,1.e-7,5] \
         	-s 4x2x1vox \
   	      -f 4x2x1 \
           --write-composite-transform \
+          --print-similarity-measure-interval \
         	-o ${output}
 else
   antsRegistration -d $dim \
@@ -47,10 +50,11 @@ else
         	-f 4 \
   	      -m cc[${target},${moving},1-${weigth_landmarks},8] \
   	      -m pse[${target_lm},${moving_lm},${weigth_landmarks},1,0,1,20] \
-        	-t BSplineSyN[0.10,20x20,0,3] \
-        	-c [50x50x50,1.e-7,5] \
+        	-t BSplineSyN[0.10,${mesh_bspline_width}"x"${mesh_bspline_height},0,3] \
+        	-c [200x100x50,1.e-7,5] \
         	-s 4x2x1vox \
   	      -f 4x2x1 \
           --write-composite-transform \
+          --print-similarity-measure-interval \
         	-o ${output}
 fi
