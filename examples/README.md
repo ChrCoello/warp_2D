@@ -1,17 +1,9 @@
-# Warping tasks: stack of 2D slices
-This task will focus on calculating a 2D to 2D diffeomorphism between stack of slices (2D) and a volumetric template (3D) within the warping ecosystem using **intensity-based** metric, **landmark-based** metric, or a combination of both
-  + the stack of 2D slices have been initially manually anchored (i.e affine transformed) to the reference coordinate space using a template and/or atlas
-  + once this stack of slices is anchored, the inverse affine transform is applied to the volumetric template to generate a stack of resliced 2D template slices. At this stage, a **stack of N slices and a stack of corresponding N template slices** is available
-  + calculation of a diffeomorphism (in the physical space) between each pair using the pre-process original slice i as moving image and resliced template slices as target. This is important as the target image is defining the space where the registration is occuring. Direct (section space to template space) and inverse (template space to section space)  transformation are calculated for each slice.
-  + each transformation consist in an affine transformation followed by a diffeomorphism modeled as a [BSplineSyN](http://journal.frontiersin.org/article/10.3389/fninf.2013.00039/full)
-  + for now, there is no relation between transformation of diffeomorphism found for slice pair i and slice pair i+1
-
 ## Example of pair of slices after anchoring
 Target slice: this is the histology slice that has been pre-processed (RGB to grayscale + invert)
-<img src="https://github.com/ChrCoello/warp/blob/master/2D/elastic/target.png?raw=true" title="Target Slice" width="512">
+<img src="https://github.com/ChrCoello/warp/blob/master/examples/elastic/target.png?raw=true" title="Target Slice" width="512">
 
 Moving slice
-<img src="https://github.com/ChrCoello/warp/blob/master/2D/elastic/moving.png?raw=true" title="Moving Slice" width="512">
+<img src="https://github.com/ChrCoello/warp/blob/master/examples/elastic/moving.png?raw=true" title="Moving Slice" width="512">
 
 The image similarity between target and moving image is **0.976361**, and is calculated as follows:
 ```shell
@@ -22,10 +14,10 @@ target.nii.gz : moving.nii.gz => CC 0.976361
 The image similarity metric is measured on all pixels, so it is normal to find such a high value (max CC  is 1). An improvement is to measure the metric on the masked image but this is not available with *MeasureImageSimilarity*.
 
 Blend moving (green) and target(gray)
-<img src="https://github.com/ChrCoello/warp/blob/master/2D/animated.gif?raw=true" title="Green: moving, gray: target" width="512">
+<img src="https://github.com/ChrCoello/warp_2D/blob/master/images/animated.gif?raw=true" title="Green: moving, gray: target" width="512">
 
 ## Intensity-based registration
-+ The code used for this task is available [here](https://github.com/ChrCoello/warp/blob/master/2D/elastic/runElastic.sh) :
++ The code used for this task is available [here](https://github.com/ChrCoello/warp/blob/master/images/elastic/runElastic.sh) :
 ```shell      
 #!/bin/bash
 #
@@ -49,12 +41,12 @@ To summarise, an affine and diffeomorphism transformation are calculated for the
 The resulting warped image is closer to the target in term of image similarity (**CC 0.987**). We can observe better matching on the edges and in the white matter tracts. Nevertheless, we can also see that there is no good registration on the *olive structure*.
 
 Moving slice
-<img src="https://github.com/ChrCoello/warp/blob/master/2D/animated_warp.gif?raw=true" title="Green: moving, gray: target" width="512">
+<img src="https://github.com/ChrCoello/warp_2D/blob/master/images/animated_warp.gif?raw=true" title="Green: moving, gray: target" width="512">
 
 ## Adding landmark-based registration
 Landmarks should be defined using ITKSnap. Each landmark has a different label as seen in the images below. Of, course, both moving and target images should have corrseponding landmarks.
 
-<img src="https://github.com/ChrCoello/warp/blob/master/2D/landmarks/surfaceMoving.png?raw=true" alt="moving slice" width="256"><img src="https://github.com/ChrCoello/warp/blob/master/2D/landmarks/surfaceTarget.png?raw=true" alt="target slice" width="256">
+<img src="https://github.com/ChrCoello/warp_2D/blob/master/examples/landmarks/surfaceMoving.png?raw=true" alt="moving slice" width="256"><img src="https://github.com/ChrCoello/warp_2D/blob/master/examples/landmarks/surfaceTarget.png?raw=true" alt="target slice" width="256">
 
 The metric used when doing landmark-based registration is point set estimation (PSE). This metric can be used on its own (landmark only) or in combination with pixel intensity registration.
 
@@ -81,21 +73,21 @@ antsRegistration -v -d $dim -r [ target.nii.gz , moving.nii.gz ,1] \
 
 Below are presented the result one gets using the above landmarks in the following configurtion :
  * original image
-  <img src="https://github.com/ChrCoello/warp/blob/master/2D/landmarks/land_int_blend_000.png?raw=true" alt="target slice" width="256">
+  <img src="https://github.com/ChrCoello/warp_2D/blob/master/examples/landmarks/land_int_blend_000.png?raw=true" alt="target slice" width="256">
  * warp with only image intensity information: very good fit on the edges but not the internal structure (*olive*)
- <img src="https://github.com/ChrCoello/warp/blob/master/2D/landmarks/land_int_blend_001.png?raw=true" alt="target slice" width="256">
+ <img src="https://github.com/ChrCoello/warp_2D/blob/master/examples/landmarks/land_int_blend_001.png?raw=true" alt="target slice" width="256">
  * warp with 80% intensity and 20% landmarks
-  <img src="https://github.com/ChrCoello/warp/blob/master/2D/landmarks/land_int_blend_002.png?raw=true" alt="target slice" width="256">
+  <img src="https://github.com/ChrCoello/warp_2D/blob/master/examples/landmarks/land_int_blend_002.png?raw=true" alt="target slice" width="256">
  * warp with 50% intensity and 50% landmarks
-  <img src="https://github.com/ChrCoello/warp/blob/master/2D/landmarks/land_int_blend_003.png?raw=true" alt="target slice" width="256">
+  <img src="https://github.com/ChrCoello/warp_2D/blob/master/examples/landmarks/land_int_blend_003.png?raw=true" alt="target slice" width="256">
  * warp with 20% intensity and 80% landmarks
-  <img src="https://github.com/ChrCoello/warp/blob/master/2D/landmarks/land_int_blend_004.png?raw=true" alt="target slice" width="256">
+  <img src="https://github.com/ChrCoello/warp_2D/blob/master/examples/landmarks/land_int_blend_004.png?raw=true" alt="target slice" width="256">
  * warp with only landmark information
-  <img src="https://github.com/ChrCoello/warp/blob/master/2D/landmarks/land_int_blend_005.png?raw=true" alt="target slice" width="256">
+  <img src="https://github.com/ChrCoello/warp_2D/blob/master/examples/landmarks/land_int_blend_005.png?raw=true" alt="target slice" width="256">
 
 Below is an animated gif showing the difference in fit when changing the weight from purely image intensity to purely landmark based.
 
-<img src="https://github.com/ChrCoello/warp/blob/master/2D/landmarks/intensity2landmarks.gif?raw=true" alt="target slice" width="256">
+<img src="https://github.com/ChrCoello/warp_2D/blob/master/examples/landmarks/landmark_2_intensity.gif?raw=true" alt="target slice" width="256">
 
 
 ## Applying transformation to high res images
