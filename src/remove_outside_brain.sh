@@ -22,8 +22,9 @@ convert ${atl_fn}_bin.${atl_ext} -morphology Dilate Disk:4.4 ${atl_fn}_bin.${atl
 composite -blend 50 -gravity South ${atl_fn}_bin.${atl_ext} ${atl} ${atl_fn}_blend.${atl_ext}
 
 
-c3d ${mri} ${atl_fn}_bin.${atl_ext} -multiply -o ${mri_fn}_masked.nii
-ImageMath 2 ${mri_output} Byte ${mri_fn}_masked.nii
+c3d ${mri} ${atl_fn}_bin.${atl_ext} -multiply -o ${mri_fn}_masked.nii.gz
+ImageMath 2 ${mri_output} Byte ${mri_fn}_masked.nii.gz
+
 composite -blend 50 -gravity South ${atl_fn}_bin.${atl_ext} ${mri} ${mri_fn}_blend.${mri_ext}
 
 ### Display
@@ -32,3 +33,7 @@ then
   convert ${mri} ${atl} ${mri_fn}_blend.${mri_ext} ${mri_output} +append ${mri_fn}_blend_composite.${mri_ext}
   display ${mri_fn}_blend_composite.${mri_ext} &
 fi
+
+### Clean
+rm ${atl_fn}_bin.${atl_ext}
+rm ${mri_fn}_masked.nii.gz

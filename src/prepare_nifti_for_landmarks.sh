@@ -126,76 +126,35 @@ c3d ${mri_res_nii} -info-full | grep -E '(Bounding Box|Voxel Spacing|Image Dimen
 ### Draw landmarks manually
 mri_res_lm_nii=${mri_res_fn}_landmarks.nii.gz
 sec_dwn_lm_nii=${sec_dwn_fn}_landmarks.nii.gz
-
-### Registration
-echo -e "\nRegistration"
-ants_trans=${sec_fn}_transf
-time runElastic.sh ${ants_trans} ${sec_dwn_nii} ${mri_res_nii} ${sec_dwn_lm_nii} ${mri_res_lm_nii} ${WEIGHT_LANDMARKS}
-echo -e "\nRegistration done with success"
-
-### This part is only for validation of the regiostration process and achieves applies the transformation to the Atlas, both low res and high res
-echo -e "**********************************************************"
-echo -e "************ Working with the downsampled atlas **********"
-echo -e "**********************************************************"
-######
-### Resize (i.e upsample) the Atlas to the same size as the resized experimental data
-atl_res=${atl_fn}_resize.${atl_ext}
-#
-atl_res_ext="${atl_res##*.}"
-atl_res_fn="${atl_res%.*}"
-#
-echo -e "Resizing Atlas file:" ${atl_fn} "to" ${sec_width}"x"${sec_height}
-convert ${atl} -resize ${sec_width}"x"${sec_height}! -interpolate nearest-neighbor -gravity NorthWest ${atl_res}
-######
-### PNG to Nifti, we have to get the transform from somewhere else
-# split channels
-convert ${atl_res} -separate ${atl_res_fn}_splitRGB%d.${atl_res_ext}
-
-atl_res_nii_0=${atl_res_fn}_splitRGB0.nii.gz
-atl_res_nii_1=${atl_res_fn}_splitRGB1.nii.gz
-atl_res_nii_2=${atl_res_fn}_splitRGB2.nii.gz
-ImageMath 2 ${atl_res_nii_0} Byte ${atl_res_fn}_splitRGB0.${atl_res_ext}
-ImageMath 2 ${atl_res_nii_1} Byte ${atl_res_fn}_splitRGB1.${atl_res_ext}
-ImageMath 2 ${atl_res_nii_2} Byte ${atl_res_fn}_splitRGB2.${atl_res_ext}
-# Copy header
-c3d ${sec_dwn_nii} ${atl_res_nii_0} -copy-transform -o ${atl_res_nii_0}
-c3d ${sec_dwn_nii} ${atl_res_nii_1} -copy-transform -o ${atl_res_nii_1}
-c3d ${sec_dwn_nii} ${atl_res_nii_2} -copy-transform -o ${atl_res_nii_2}
-# Change to short
-c3d ${atl_res_nii_0} -type ushort -o ${atl_res_nii_0}
-c3d ${atl_res_nii_1} -type ushort -o ${atl_res_nii_1}
-c3d ${atl_res_nii_2} -type ushort -o ${atl_res_nii_2}
-echo -e "\nAtlas nifti file" ${atl_res_nii_0} "info:"
-c3d ${atl_res_nii_0} -info-full | grep -E '(Bounding Box|Voxel Spacing|Image Dimensions)'
-
-### Apply transformation to the downsampled Atlas
-echo -e "\nApply transformation to atlas"
-comp_transf=${ants_trans}Composite.h5
-#mri_res_warp_fn=${mri_res_fn}_warp
-atl_res_warp_fn=${atl_res_fn}_warp
-atl_res_warp_fn_0=${atl_res_fn}_splitRGB0_warp
-atl_res_warp_fn_1=${atl_res_fn}_splitRGB1_warp
-atl_res_warp_fn_2=${atl_res_fn}_splitRGB2_warp
-# apply transforms to red green and blue
-echo -e "\nApply transformation" ${comp_transf} "to" ${atl_res_nii_0}
-time runApplyTransform.sh ${comp_transf} ${sec_dwn_nii} ${atl_res_nii_0} ${atl_res_warp_fn_0}
-echo -e "Apply transformation" ${comp_transf} "to" ${atl_res_nii_1}
-time runApplyTransform.sh ${comp_transf} ${sec_dwn_nii} ${atl_res_nii_1} ${atl_res_warp_fn_1}
-echo -e "Apply transformation" ${comp_transf} "to" ${atl_res_nii_2}
-time runApplyTransform.sh ${comp_transf} ${sec_dwn_nii} ${atl_res_nii_2} ${atl_res_warp_fn_2}
-
-# regroup channels
-echo -e "\nRegrouping the RGB channels into a warped low res Atlas"
-convert ${atl_res_warp_fn_0}.png ${atl_res_warp_fn_1}.png ${atl_res_warp_fn_2}.png -set colorspace RGB -combine -set colorspace sRGB ${atl_res_warp_fn}.png
-### Blend with target
-composite -blend 50 -gravity South ${atl_res_warp_fn}.png ${sec_dwn} ${sec_dwn_fn}_warp_blend.png
-composite -blend 50 -gravity South ${atl_res} ${sec_dwn} ${sec_dwn_fn}_blend.png
-### Display
-if [ ${DISPLAY_OUTPUT} -eq 1 ]
+if [ ! -f "${mri_res_lm_nii}" ]
 then
-display ${sec_dwn_fn}_blend.png &
-display ${sec_dwn_fn}_warp_blend.png &
+	echo -e "\n"
+	echo -e "**********************************************************"
+	echo -e "*   Draw landmarks for" ${mri_res_nii} "using ITKSnap "
+	echo -e "**********************************************************"
+	echo -e "\n"
+	exit 3
+else
+  echo -e "\n"
+  echo -e "**********************************************************"
+  echo -e "*   Landmarks for" ${mri_res_nii} " was found:            "
+  echo -e "*    "${mri_res_lm_nii}"                                      "
+  echo -e "**********************************************************"
+  echo -e "\n"
 fi
-
-### Clean
-rm *split*.*
+if [ ! -f "${sec_dwn_lm_nii}" ]
+then
+	echo -e "\n"
+	echo -e "**********************************************************"
+	echo -e "*   Draw landmarks for" ${sec_dwn_nii} "using ITKSnap "
+	echo -e "**********************************************************"
+	echo -e "\n"
+	exit 3
+else
+  echo -e "\n"
+  echo -e "**********************************************************"
+  echo -e "*   Landmarks for" ${sec_dwn_nii} " was found:            "
+  echo -e "*    "${sec_dwn_lm_nii}"                                      "
+  echo -e "**********************************************************"
+  echo -e "\n"
+fi

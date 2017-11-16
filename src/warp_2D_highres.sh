@@ -24,6 +24,7 @@ atl=$3
 
 ### General parameters
 DISPLAY_OUTPUT=1
+WEIGHT_LANDMARKS=0
 
 ### Parameters
 work_width=1024
@@ -57,7 +58,8 @@ sec_meta_fn="${sec_meta%.*}"
 #
 #echo -e "\nMetadata of" ${sec_fn}":"
 #identify -verbose ${sec} | grep -E '(Resolution|Units|Print size|Geometry)'
-#convert ${sec} -strip ${sec_meta}
+echo -e "\nStriping physical space metadata of" ${sec_fn}
+convert ${sec} -strip ${sec_meta}
 #echo -e "\nMetadata of" ${sec_meta} "after stripping the physical space metadata:"
 #identify -verbose ${sec_meta} | grep -E '(Resolution|Units|Print size|Geometry)'
 #
@@ -122,8 +124,8 @@ echo -e "\nMRI nifti file" ${mri_res_nii} "info:"
 c3d ${mri_res_nii} -info-full | grep -E '(Bounding Box|Voxel Spacing|Image Dimensions)'
 
 ### Draw landmarks manually
-mri_res_lm_nii=${mri_res_fn}_landmarks.nii
-sec_dwn_lm_nii=${sec_dwn_fn}_landmarks.nii
+mri_res_lm_nii=${mri_res_fn}_landmarks.nii.gz
+sec_dwn_lm_nii=${sec_dwn_fn}_landmarks.nii.gz
 #if [ ! -f "${mri_res_lm}" ]
 #then
 #	echo -e "\n"
@@ -146,7 +148,7 @@ sec_dwn_lm_nii=${sec_dwn_fn}_landmarks.nii
 ### Registration
 echo -e "\nRegistration"
 ants_trans=${sec_fn}_transf
-time runElastic.sh ${ants_trans} ${sec_dwn_nii} ${mri_res_nii} ${sec_dwn_lm_nii} ${mri_res_lm_nii}
+time runElastic.sh ${ants_trans} ${sec_dwn_nii} ${mri_res_nii} ${sec_dwn_lm_nii} ${mri_res_lm_nii} ${WEIGHT_LANDMARKS}
 echo -e "\nRegistration done with success"
 
 ### This part is only for validation of the regiostration process and achieves applies the transformation to the Atlas, both low res and high res
@@ -185,7 +187,7 @@ echo -e "\nAtlas nifti file" ${atl_res_nii_0} "info:"
 c3d ${atl_res_nii_0} -info-full | grep -E '(Bounding Box|Voxel Spacing|Image Dimensions)'
 
 ### Apply transformation to the downsampled Atlas
-echo -e "\nApply transformation"
+echo -e "\nApply transformation to atlas"
 comp_transf=${ants_trans}Composite.h5
 #mri_res_warp_fn=${mri_res_fn}_warp
 atl_res_warp_fn=${atl_res_fn}_warp
@@ -193,9 +195,12 @@ atl_res_warp_fn_0=${atl_res_fn}_splitRGB0_warp
 atl_res_warp_fn_1=${atl_res_fn}_splitRGB1_warp
 atl_res_warp_fn_2=${atl_res_fn}_splitRGB2_warp
 # apply transforms to red green and blue
-runApplyTransform.sh ${comp_transf} ${sec_dwn_nii} ${atl_res_nii_0} ${atl_res_warp_fn_0}
-runApplyTransform.sh ${comp_transf} ${sec_dwn_nii} ${atl_res_nii_1} ${atl_res_warp_fn_1}
-runApplyTransform.sh ${comp_transf} ${sec_dwn_nii} ${atl_res_nii_2} ${atl_res_warp_fn_2}
+echo -e "\nApply transformation" ${comp_transf} "to" ${atl_res_nii_0}
+time runApplyTransform.sh ${comp_transf} ${sec_dwn_nii} ${atl_res_nii_0} ${atl_res_warp_fn_0}
+echo -e "Apply transformation" ${comp_transf} "to" ${atl_res_nii_1}
+time runApplyTransform.sh ${comp_transf} ${sec_dwn_nii} ${atl_res_nii_1} ${atl_res_warp_fn_1}
+echo -e "Apply transformation" ${comp_transf} "to" ${atl_res_nii_2}
+time runApplyTransform.sh ${comp_transf} ${sec_dwn_nii} ${atl_res_nii_2} ${atl_res_warp_fn_2}
 
 # regroup channels
 echo -e "\nRegrouping the RGB channels into a warped low res Atlas"
@@ -209,6 +214,9 @@ then
 display ${sec_dwn_fn}_blend.png &
 display ${sec_dwn_fn}_warp_blend.png &
 fi
+
+### Clean
+rm *split*.*
 
 
 echo -e "**********************************************************"

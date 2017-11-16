@@ -24,6 +24,7 @@ atl=$3
 
 ### General parameters
 DISPLAY_OUTPUT=1
+WEIGHT_LANDMARKS=0
 
 ### Parameters
 work_width=1024
@@ -57,7 +58,8 @@ sec_meta_fn="${sec_meta%.*}"
 #
 #echo -e "\nMetadata of" ${sec_fn}":"
 #identify -verbose ${sec} | grep -E '(Resolution|Units|Print size|Geometry)'
-#convert ${sec} -strip ${sec_meta}
+echo -e "\nStriping physical space metadata of" ${sec_fn}
+convert ${sec} -strip ${sec_meta}
 #echo -e "\nMetadata of" ${sec_meta} "after stripping the physical space metadata:"
 #identify -verbose ${sec_meta} | grep -E '(Resolution|Units|Print size|Geometry)'
 #
@@ -122,29 +124,11 @@ echo -e "\nMRI nifti file" ${mri_res_nii} "info:"
 c3d ${mri_res_nii} -info-full | grep -E '(Bounding Box|Voxel Spacing|Image Dimensions)'
 
 ### Draw landmarks manually
-mri_res_lm_nii=${mri_res_fn}_landmarks.nii
-sec_dwn_lm_nii=${sec_dwn_fn}_landmarks.nii
-#if [ ! -f "${mri_res_lm}" ]
-#then
-#	echo -e "\n"
-#	echo -e "**********************************************************"
-#	echo -e "*   Draw landmarks for" ${mri_res_nii} "using ITKSnap "
-#	echo -e "**********************************************************"
-#	echo -e "\n"
-#	exit 3
-#fi
-#if [ ! -f "${sec_dwn_lm}" ]
-#then
-#	echo -e "\n"
-#	echo -e "**********************************************************"
-#	echo -e "*   Draw landmarks for" ${sec_dwn_nii} "using ITKSnap "
-#	echo -e "**********************************************************"
-#	echo -e "\n"
-#	exit 3
-#fi
+mri_res_lm_nii=${mri_res_fn}_landmarks.nii.gz
+sec_dwn_lm_nii=${sec_dwn_fn}_landmarks.nii.gz
 
 ### Registration
 echo -e "\nRegistration"
 ants_trans=${sec_fn}_transf
-time runElastic.sh ${ants_trans} ${sec_dwn_nii} ${mri_res_nii} ${sec_dwn_lm_nii} ${mri_res_lm_nii}
+time runElastic.sh ${ants_trans} ${sec_dwn_nii} ${mri_res_nii} ${sec_dwn_lm_nii} ${mri_res_lm_nii} ${WEIGHT_LANDMARKS}
 echo -e "\nRegistration done with success"

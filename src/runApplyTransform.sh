@@ -10,7 +10,7 @@ output=$4
 dim=2
 
 ### Apply transform #
-antsApplyTransforms -v -d $dim \
+antsApplyTransforms -d $dim \
 	-i ${moving} -r ${target} \
 	-t ${comp_transf} \
 	-o ${output}.nii.gz
