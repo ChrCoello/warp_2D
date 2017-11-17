@@ -24,7 +24,7 @@ atl=$3
 
 ### General parameters
 DISPLAY_OUTPUT=1
-WEIGHT_LANDMARKS=0
+WEIGHT_LANDMARKS=1
 
 ### Parameters
 work_width=1024
