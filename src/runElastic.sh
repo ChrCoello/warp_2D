@@ -24,7 +24,8 @@ echo -e "\nWeight landmarks similarity metric:" ${weight_landmarks}
 echo -e "Weight intensity similarity metric:" ${weight_intensity}
 
 dim=2
-MESH_BSPLINE_REDUCTION=10
+MESH_BSPLINE_REDUCTION=2
+ITERATIONS_NL=61
 
 ### Getting the mesh
 width=$(c3d ${target} -info-full | grep -oP ' dim\[1\] = \s*\K\d+')
@@ -46,7 +47,7 @@ then
    -f 4 \
    -m cc[${target},${moving},1,8] \
    -t BSplineSyN[0.10,${mesh_bspline_width}"x"${mesh_bspline_height},0,3] \
-   -c [61x61x61,1e-7,11] \
+   -c [$((${ITERATIONS_NL}*4))"x"$((${ITERATIONS_NL}*2))"x"${ITERATIONS_NL},1e-7,11] \
    -s 4x2x1vox \
    -f 4x2x1 \
    --write-composite-transform \
@@ -64,7 +65,7 @@ else
    -m cc[${target},${moving},${weight_intensity},8] \
    -m pse[${target_lm},${moving_lm},${weight_landmarks}] \
    -t BSplineSyN[0.10,${mesh_bspline_width}"x"${mesh_bspline_height},0,3] \
-   -c [61x61x61,1e-7,11] \
+   -c [$((${ITERATIONS_NL}*4))"x"$((${ITERATIONS_NL}*2))"x"${ITERATIONS_NL},1e-7,11] \
    -s 4x2x1vox \
    -f 4x2x1 \
    --write-composite-transform \
