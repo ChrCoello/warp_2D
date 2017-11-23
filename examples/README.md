@@ -17,7 +17,7 @@ Blend moving (green) and target(gray)
 <img src="https://github.com/ChrCoello/warp_2D/blob/master/images/animated.gif?raw=true" title="Green: moving, gray: target" width="512">
 
 ## Intensity-based registration
-+ The code used for this task is available [here](https://github.com/ChrCoello/warp/blob/master/images/elastic/runElastic.sh) :
+
 ```shell      
 #!/bin/bash
 #
@@ -98,24 +98,14 @@ Let's look process the high resolution image *MR25_s019.tif* and associated MR a
 ./warp2D_single_section.sh MR25_s018_WP.tif MR25_s018_WP_MRI.png MR25_s018_WP_Segmentation.png 5000 20
 ```
 
+This tiff image is defining a given physical space, this space being captured by the following tiff tags defined by their [libtiff name](https://www.awaresystems.be/imaging/tiff/tifftags/baseline.html) :
+* TIFFTAG_IMAGEWIDTH
+* TIFFTAG_IMAGELENGTH
+* TIFFTAG_XRESOLUTION
+* TIFFTAG_YRESOLUTION
+* TIFFTAG_RESOLUTIONUNIT
 
-This tiff image is defining a given physical space, this space being captured by the following tiff tags defined by their [libtiff name](https://www.awaresystems.be/imaging/tiff/tifftags/baseline.html) TIFFTAG_IMAGEWIDTH,TIFFTAG_IMAGELENGTH,TIFFTAG_XRESOLUTION, TIFFTAG_YRESOLUTION,TIFFTAG_RESOLUTIONUNIT.
-
-Metadata input *MR25_s019.tif*
-```bash
-echo -e "\nMetadata of" ${sec_fn} ":"
-identify -verbose ${sec} | grep -E '(Resolution|Units|Print size|Geometry)'
-Metadata of MR25_s018_WP:
-  Geometry: 22500x17500+0+0
-  Resolution: 72x72
-  Print size: 312.5x243.056
-  Units: PixelsPerInch
-    tiff:ResolutionUnit: 2
-    tiff:XResolution: 720000/10000
-    tiff:YResolution: 720000/10000
-```
-
-Defining the correct physical space
+The scripts clears any metadata defining the physical space and defines the correct physical space
 ```bash
 convert ${sec} -strip ${sec_meta}
 convert ${sec_meta} -units PixelsPerCentimeter ${sec_meta}
@@ -176,8 +166,8 @@ Then the customised MRI cut and associated atlas delineations are resized to the
 ```bash
 antsRegistration -v -d $dim \
       	-m cc[${target},${moving},1,8] \
-      	-t affine[0.10,1.e-7,20] \
-      	-c [500] \
+      	-t affine[0.10] \
+      	-c [500,1.e-7,20] \
       	-s 4vox \
       	-f 4 \
 	      -m cc[${target},${moving},1,8] \

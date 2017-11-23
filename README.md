@@ -7,28 +7,39 @@ script to estimate a non linear transformation between a 2D microscopic section 
 
 ## Installation
 
-* Clone this repo to your local machine
-```bash
-cd $HOME
-git clone https://github.com/ChrCoello/warp_2D.git
-```
-* Add the warp_2d/src folder to your PATH by adding the two lines below to your ``.bashrc`` or ``.bash_profile``
-```bash
-export WARP2DPATH="$HOME/warp_2D/src"
-PATH="$WARP2DPATH:$PATH"
-```
 * Requirements :
   * [ANTs version 2.1.0.post780-g767f7](https://github.com/ANTsX/ANTs) or superior
   * [c3d-1.0.0](https://sourceforge.net/projects/c3d/files/c3d/1.0.0/) or nightly build
   * [ImageMagick 7.0.7-11](https://www.imagemagick.org/script/download.php) or superior
 
+* Clone this repo to your local machine
+```bash
+cd $HOME
+git clone https://github.com/ChrCoello/warp_2D.git
+```
+* Add the warp_2d/src folder to your PATH by adding the lines below to your ``.bashrc``
+```bash
+export ANTSPATH="$HOME/ants/bin"
+export C3DPATH="$HOME/itksnap/bin"
+export ITKSNAPPATH="$HOME/c3d/bin"
+export WARP2DPATH="$HOME/warp_2D/src"
+PATH="${WARP2DPATH}:${WARP2DPATH}:${WARP2DPATH}:${WARP2DPATH}:$PATH"
+```
 
 ## General usage
 
-The inputs are :
-* source.tif: the 2D microscopic image,
-* template.png: the 2D template section obtained after  anchoring source.tif to the reference atlas using the QuickNii tool,
-* atlas.png: the 2D atlas section obtained after anchoring source.tif to the reference atlas using the QuickNii tool.
+Necessary inputs:
+* source.tif: the 2D microscopic image
+* template.png: the 2D template section obtained after  anchoring source.tif to the reference atlas using the QuickNii tool
+* atlas.png: the 2D atlas section obtained after anchoring source.tif to the reference atlas using the QuickNii tool
+
+Main files:
+
+[**prepare_nifti_for_landmarks.sh**](warp_2D/src/prepare_nifti_for_landmarks.sh)
+To prepare Nifti files for drawing the landmarks
+```bash
+prepare_nifti_for_landmarks.sh source.tif template.png atlas.png
+```
 
 [**warp_2D.sh**](warp_2D/src/warp_2D.sh)
 To calculate the non linear transformation
@@ -66,16 +77,16 @@ Each transformation consist is composition of an affine transformation followed 
 
 ## Warping ecosystem
 
-  + Advanced Normalization Tools ([ANTs](http://stnava.github.io/ANTs/)) has been selected as the platform/ecosystem to implement registrations
-  + set of [functions](https://github.com/ANTsX/ANTs) (mainly C++) based on the Insight Segmentation and Registration Toolkit ([ITK](https://itk.org/) )
-  + command-line tools
-  + run on Linux (pk-ana-1317a) and implemented on the [Abel Cluster Computer](http://www.uio.no/english/services/it/research/hpc/abel/)
-  + active [community](https://sourceforge.net/p/advants/discussion/) of user and developers (mainly Brian Avants and Nick Tustison)
-  + as for October 2017, warp functions in Python : [ANTsPy](https://github.com/ANTsX/ANTsPy)
++ Advanced Normalization Tools ([ANTs](http://stnava.github.io/ANTs/)) has been selected as the platform/ecosystem to implement registrations
++ set of [functions](https://github.com/ANTsX/ANTs) (mainly C++) based on the Insight Segmentation and Registration Toolkit ([ITK](https://itk.org/) )
++ command-line tools
++ run on Linux (pk-ana-1317a) and implemented on the [Abel Cluster Computer](http://www.uio.no/english/services/it/research/hpc/abel/)
++ active [community](https://sourceforge.net/p/advants/discussion/) of user and developers (mainly Brian Avants and Nick Tustison)
++ as for October 2017, warp functions in Python : [ANTsPy](https://github.com/ANTsX/ANTsPy)
 
+## Workflow
+November 2017
+![Workflow warp_2D_lowres.sh and warp_2D_highres.sh](images/workflow.svg)
 
-Workflow November 2017
-![README](images/workflow_simplified.svg)
-
-Workflow May 2017
-![README](images/workflow.svg)
+## Examples
+See ![here](examples/README.md) for examples
